@@ -1,0 +1,122 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ---------------------------------------------------------
+    // GLOBALS & HELPERS
+    // ---------------------------------------------------------
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      // Bootstrapped Admin for development and owner access
+      return isSignedIn() && isEmailVerified() && (
+        request.auth.token.email == 'homoloy422@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // ---------------------------------------------------------
+    // SCHEMA VALIDATION HELPERS
+    // ---------------------------------------------------------
+
+    function isValidMember(data) {
+      return data.keys().hasAll(['fullName', 'phone', 'whatsapp', 'joinDate', 'planId', 'feesAmount', 'dueDate', 'gender', 'status'])
+        && data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100
+        && data.phone is string && data.phone.size() >= 8 && data.phone.size() <= 20
+        && data.whatsapp is string && data.whatsapp.size() >= 8 && data.whatsapp.size() <= 20
+        && data.joinDate is string
+        && data.planId is string
+        && data.feesAmount is number && data.feesAmount >= 0
+        && data.dueDate is string
+        && data.gender in ['male', 'female', 'other']
+        && data.status in ['active', 'inactive']
+        && (data.get('notes', '') is string && data.get('notes', '').size() <= 1000)
+        && (data.get('photoUrl', '') is string);
+    }
+
+    function isValidPlan(data) {
+      return data.keys().hasAll(['name', 'amount', 'durationMonths'])
+        && data.name is string && data.name.size() > 0
+        && data.amount is number && data.amount >= 0
+        && data.durationMonths is int && data.durationMonths > 0;
+    }
+
+    function isValidPayment(data) {
+      return data.keys().hasAll(['memberId', 'amount', 'date', 'method', 'type'])
+        && data.memberId is string
+        && data.amount is number && data.amount > 0
+        && data.date is string
+        && data.method is string
+        && data.type is string;
+    }
+
+    function isValidAttendance(data) {
+      return data.keys().hasAll(['memberId', 'date', 'checkInTime'])
+        && data.memberId is string
+        && data.date is string
+        && data.checkInTime is string;
+    }
+
+    // ---------------------------------------------------------
+    // DEFAULT DENY
+    // ---------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ---------------------------------------------------------
+    // COLLECTIONS
+    // ---------------------------------------------------------
+
+    match /members/{memberId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidId(memberId) && isValidMember(incoming());
+      allow update: if isAdmin() && isValidMember(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /plans/{planId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin() && isValidId(planId) && isValidPlan(incoming());
+      allow update: if isAdmin() && isValidPlan(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidId(paymentId) && isValidPayment(incoming());
+      allow update: if isAdmin() && isValidPayment(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /attendance/{attendanceId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && isValidId(attendanceId) && isValidAttendance(incoming());
+      allow update: if isAdmin() && isValidAttendance(incoming());
+      allow delete: if isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if false; // Only manageable via console or special scripts
+    }
+  }
+}

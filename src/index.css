@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-red: #dc2626;
+  --color-brand-red-dark: #b91c1c;
+  --color-gym-black: #050505;
+  --color-gym-gray: #0a0a0a;
+  --color-gym-gray-light: #121212;
+  
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", sans-serif;
+  
+  --background: var(--color-gym-black);
+  --foreground: #f1f5f9;
+}
+
+@layer base {
+  body {
+    @apply bg-[#050505] text-slate-100 antialiased font-sans;
+  }
+}
+
+.glass-card {
+  @apply bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl;
+}
+
+.sidebar-item-active {
+  @apply bg-brand-red/10 text-brand-red border border-brand-red/20;
+}
+
+.red-glow {
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.1);
+}
+
+.red-glow-strong {
+  box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.2), 0 4px 6px -4px rgba(220, 38, 38, 0.1);
+}

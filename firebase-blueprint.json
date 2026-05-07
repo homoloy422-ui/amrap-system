@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "Member": {
+      "title": "Member",
+      "description": "Gym member details",
+      "type": "object",
+      "properties": {
+        "fullName": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "joinDate": { "type": "string", "format": "date-time" },
+        "planId": { "type": "string" },
+        "feesAmount": { "type": "number" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "gender": { "type": "string", "enum": ["male", "female", "other"] },
+        "notes": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] }
+      },
+      "required": ["fullName", "phone", "whatsapp", "joinDate", "planId", "feesAmount", "dueDate", "gender", "status"]
+    },
+    "Plan": {
+      "title": "Plan",
+      "description": "Membership plans",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "amount": { "type": "number" },
+        "durationMonths": { "type": "integer" }
+      },
+      "required": ["name", "amount", "durationMonths"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Payment records",
+      "type": "object",
+      "properties": {
+        "memberId": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "format": "date-time" },
+        "method": { "type": "string" },
+        "type": { "type": "string" },
+        "invoiceId": { "type": "string" }
+      },
+      "required": ["memberId", "amount", "date", "method", "type"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Daily attendance check-ins",
+      "type": "object",
+      "properties": {
+        "memberId": { "type": "string" },
+        "date": { "type": "string" },
+        "checkInTime": { "type": "string", "format": "date-time" }
+      },
+      "required": ["memberId", "date", "checkInTime"]
+    }
+  },
+  "firestore": {
+    "members": {
+      "schema": "Member",
+      "description": "Collection of gym members"
+    },
+    "plans": {
+      "schema": "Plan",
+      "description": "Collection of membership plans"
+    },
+    "payments": {
+      "schema": "Payment",
+      "description": "Collection of payment records"
+    },
+    "attendance": {
+      "schema": "Attendance",
+      "description": "Collection of attendance records"
+    }
+  }
+}
