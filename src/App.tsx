@@ -85,13 +85,18 @@ const App: React.FC = () => {
     const unsubMembers = onSnapshot(query(collection(db, membersPath), orderBy('fullName')), (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Member));
       setMembers(data);
-    }, (err) => handleFirestoreError(err, OperationType.LIST, membersPath));
+    }, (err) => {
+      if (user) handleFirestoreError(err, OperationType.LIST, membersPath);
+    });
 
     // Fetch Plans
     const plansPath = 'plans';
     const unsubPlans = onSnapshot(collection(db, plansPath), (snap) => {
-      if (snap.empty) {
-        // Bootstrap plans if none exist
+      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Plan));
+      const hasAmrapPlans = data.some(p => p.name.includes('Protocol'));
+
+      if (!hasAmrapPlans && user) {
+        // Bootstrap plans if none exist or only old ones exist
         const defaultPlans = [
           { name: 'Monthly Protocol', amount: 1000, durationMonths: 1 },
           { name: '2 Month Protocol', amount: 2000, durationMonths: 2 },
@@ -101,24 +106,29 @@ const App: React.FC = () => {
         defaultPlans.forEach(p => addDoc(collection(db, plansPath), p));
       }
 
-      // Cleanup old plans if they exist
-      snap.docs.forEach(d => {
-        const p = d.data();
-        if (p.name === 'Monthly Basic' || p.name === 'Monthly Pro' || p.name === 'Quarterly' || p.name === 'Annual Titan') {
-          deleteDoc(doc(db, plansPath, d.id));
-        }
-      });
+      // Cleanup old plans if they exist and user is admin
+      if (user) {
+        snap.docs.forEach(d => {
+          const p = d.data();
+          if (p.name === 'Monthly Basic' || p.name === 'Monthly Pro' || p.name === 'Quarterly' || p.name === 'Annual Titan') {
+            deleteDoc(doc(db, plansPath, d.id));
+          }
+        });
+      }
 
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Plan));
       setPlans(data.filter(p => !['Monthly Basic', 'Monthly Pro', 'Quarterly', 'Annual Titan'].includes(p.name)));
-    }, (err) => handleFirestoreError(err, OperationType.LIST, plansPath));
+    }, (err) => {
+      if (user) handleFirestoreError(err, OperationType.LIST, plansPath);
+    });
 
     // Fetch Payments
     const paymentsPath = 'payments';
     const unsubPayments = onSnapshot(query(collection(db, paymentsPath), orderBy('date', 'desc')), (snap) => {
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payment));
       setPayments(data);
-    }, (err) => handleFirestoreError(err, OperationType.LIST, paymentsPath));
+    }, (err) => {
+      if (user) handleFirestoreError(err, OperationType.LIST, paymentsPath);
+    });
 
     return () => {
       unsubMembers();
@@ -156,6 +166,11 @@ const App: React.FC = () => {
   };
 
   const handleSaveMember = async (memberData: Omit<Member, 'id'>) => {
+    if (!user) {
+      alert('Authentication required. Please use Titan Login.');
+      handleLogin();
+      return;
+    }
     const path = 'members';
     try {
       if (editingMember?.id) {

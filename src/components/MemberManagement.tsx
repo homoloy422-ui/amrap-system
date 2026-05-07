@@ -135,7 +135,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({
                 <div>
                   <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Rank</p>
                   <p className="text-xs font-bold text-slate-200">
-                    {plans.find(p => p.id === member.planId)?.name || 'Titan Elite'}
+                    {plans.find(p => p.id === member.planId)?.name || member.planId || 'Titan Elite'}
                   </p>
                 </div>
                 <div>

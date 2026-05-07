@@ -34,29 +34,14 @@ const MemberForm: React.FC<MemberFormProps> = ({ member, onClose, onSave, plans 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ 
-      ...prev, 
-      [name]: name === 'feesAmount' ? parseFloat(value) : value 
-    }));
-  };
-
-  const handlePlanChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const planId = e.target.value;
-    const plan = plans.find(p => p.id === planId);
-    if (plan) {
-      setFormData(prev => {
-        // Calculate due date based on plan duration
-        const joinDate = new Date(prev.joinDate);
-        const dueDate = new Date(joinDate);
-        dueDate.setMonth(dueDate.getMonth() + plan.durationMonths);
-        
-        return {
-          ...prev,
-          planId,
-          feesAmount: plan.amount,
-          dueDate: dueDate.toISOString().split('T')[0]
-        };
-      });
+    if (name === 'feesAmount') {
+      const val = parseFloat(value);
+      setFormData(prev => ({ ...prev, feesAmount: isNaN(val) ? 0 : val }));
+    } else {
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value 
+      }));
     }
   };
 
@@ -167,17 +152,44 @@ const MemberForm: React.FC<MemberFormProps> = ({ member, onClose, onSave, plans 
               <label className="text-[10px] text-white/40 uppercase font-black tracking-widest pl-1">Membership Plan</label>
               <div className="relative">
                 <ClipboardList className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={18} />
-                <select
+                <input
                   name="planId"
-                  value={formData.planId}
-                  onChange={handlePlanChange}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:border-brand-red/50 transition-all"
-                >
-                  <option value="" disabled className="bg-gym-gray">Select Plan</option>
+                  list="plan-suggestions"
+                  value={(() => {
+                    const plan = plans.find(p => p.id === formData.planId);
+                    return plan ? plan.name : formData.planId;
+                  })()}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const matchedPlan = plans.find(p => p.name === value || p.id === value);
+                    
+                    if (matchedPlan) {
+                      // Calculate due date based on plan duration
+                      const joinDate = new Date(formData.joinDate);
+                      const dueDate = new Date(joinDate);
+                      dueDate.setMonth(dueDate.getMonth() + (matchedPlan.durationMonths || 1));
+                      
+                      setFormData(prev => ({
+                        ...prev,
+                        planId: matchedPlan.id || '',
+                        feesAmount: matchedPlan.amount || 0,
+                        dueDate: dueDate.toISOString().split('T')[0]
+                      }));
+                    } else {
+                      setFormData(prev => ({
+                        ...prev,
+                        planId: value
+                      }));
+                    }
+                  }}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:border-brand-red/50 transition-all font-medium"
+                  placeholder="Type or select plan..."
+                />
+                <datalist id="plan-suggestions">
                   {plans.map(plan => (
-                    <option key={plan.id} value={plan.id} className="bg-gym-gray">{plan.name} - ₹{plan.amount}</option>
+                    <option key={plan.id} value={plan.name} />
                   ))}
-                </select>
+                </datalist>
               </div>
             </div>
 
@@ -190,7 +202,7 @@ const MemberForm: React.FC<MemberFormProps> = ({ member, onClose, onSave, plans 
                   required
                   type="number"
                   name="feesAmount"
-                  value={formData.feesAmount}
+                  value={formData.feesAmount || ''}
                   onChange={handleChange}
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:outline-none focus:border-brand-red/50 transition-all"
                 />

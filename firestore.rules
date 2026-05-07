@@ -11,10 +11,10 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && isEmailVerified() && (
+      return isSignedIn() && (
+        (isEmailVerified() && exists(/databases/$(database)/documents/admins/$(request.auth.uid))) ||
         request.auth.token.email == 'homoloy422@gmail.com' ||
-        request.auth.token.email == 'turunghomoloy98@gmail.com' ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        request.auth.token.email == 'turunghomoloy98@gmail.com'
       );
     }
 
@@ -53,7 +53,7 @@ service cloud.firestore {
       return data.keys().hasAll(['name', 'amount', 'durationMonths'])
         && data.name is string && data.name.size() > 0 && data.name.size() <= 100
         && data.amount is number && data.amount >= 0
-        && data.durationMonths is int && data.durationMonths > 0 && data.durationMonths <= 120;
+        && data.durationMonths is number && data.durationMonths > 0 && data.durationMonths <= 120;
     }
 
     function isValidPayment(data) {

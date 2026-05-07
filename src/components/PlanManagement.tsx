@@ -24,6 +24,7 @@ const PlanManagement: React.FC<PlanManagementProps> = ({ plans }) => {
       await addDoc(collection(db, 'plans'), newPlan);
       setIsModalOpen(false);
       setNewPlan({ name: '', durationMonths: 1, amount: 0, features: ['Access to all equipment', 'Free locker', 'Locker access'] });
+      alert('New Protocol Deployed successfully!');
     } catch (err) {
       console.error(err);
     }
@@ -140,8 +141,11 @@ const PlanManagement: React.FC<PlanManagementProps> = ({ plans }) => {
                       required
                       min="1"
                       className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:outline-none focus:border-red-600 transition-all font-bold"
-                      value={newPlan.durationMonths}
-                      onChange={e => setNewPlan({...newPlan, durationMonths: parseInt(e.target.value)})}
+                      value={newPlan.durationMonths || ''}
+                      onChange={e => {
+                        const val = parseInt(e.target.value);
+                        setNewPlan({...newPlan, durationMonths: isNaN(val) ? 0 : val});
+                      }}
                     />
                   </div>
                   <div>
@@ -150,17 +154,20 @@ const PlanManagement: React.FC<PlanManagementProps> = ({ plans }) => {
                       type="number" 
                       required
                       className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:outline-none focus:border-red-600 transition-all font-bold"
-                      value={newPlan.amount}
-                      onChange={e => setNewPlan({...newPlan, amount: parseInt(e.target.value)})}
+                      value={newPlan.amount || ''}
+                      onChange={e => {
+                        const val = parseInt(e.target.value);
+                        setNewPlan({...newPlan, amount: isNaN(val) ? 0 : val});
+                      }}
                     />
                   </div>
                 </div>
-                <button 
-                  type="submit"
-                  className="w-full bg-red-600 text-white py-5 rounded-2xl font-black tracking-[0.2em] uppercase shadow-xl shadow-red-600/20 active:scale-95 transition-all mt-4"
-                >
-                  DEPOY PROTOCOL
-                </button>
+                  <button 
+                    type="submit"
+                    className="w-full bg-red-600 text-white py-5 rounded-2xl font-black tracking-[0.2em] uppercase shadow-xl shadow-red-600/20 active:scale-95 transition-all mt-4"
+                  >
+                    DEPLOY PROTOCOL
+                  </button>
               </form>
             </motion.div>
           </div>
