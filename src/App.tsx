@@ -196,46 +196,6 @@ const App: React.FC = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="h-screen w-full bg-gym-black flex flex-col items-center justify-center px-4 relative overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-red/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand-red/5 blur-[120px] rounded-full" />
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full text-center space-y-8 z-10"
-        >
-          <div className="w-20 h-20 bg-brand-red rounded-3xl flex items-center justify-center mx-auto red-glow-strong overflow-hidden relative">
-             <Activity size={40} className="text-white z-10" />
-             <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent" />
-          </div>
-          
-          <div>
-            <h1 className="text-5xl font-display font-black tracking-tighter italic mb-3 underline decoration-brand-red/50 decoration-4 underline-offset-8">
-              AMRAP THE GYM
-            </h1>
-            <p className="text-white/40 text-lg uppercase tracking-[0.2em] font-medium italic">Command Center</p>
-          </div>
-
-          <div className="glass-card p-10 space-y-6">
-            <p className="text-white/60">Level up your gym management with premium analytics and automation.</p>
-            <button 
-              onClick={handleLogin}
-              className="w-full bg-white text-black py-4 rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-white/90 transition-all active:scale-95 shadow-xl shadow-brand-red/5"
-            >
-              <LogIn size={20} />
-              Admin Login
-            </button>
-            <p className="text-[10px] text-white/20 uppercase tracking-widest font-black">Authorized Personnel Only</p>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-screen bg-gym-black overflow-hidden relative">
       <Sidebar 
@@ -285,20 +245,33 @@ const App: React.FC = () => {
             <div className="hidden lg:flex items-center gap-2">
               <span className="text-[10px] text-green-400 font-mono font-bold tracking-widest uppercase">● SYSTEM ONLINE</span>
             </div>
-            <div className="flex items-center gap-2 sm:gap-4">
+            {!user ? (
                <button 
-                onClick={() => {
-                  setEditingMember(null);
-                  setIsMemberModalOpen(true);
-                }}
-                className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg text-[10px] font-black tracking-widest uppercase shadow-lg shadow-red-600/20 active:scale-95 transition-all"
+                onClick={handleLogin}
+                className="bg-white text-black px-4 py-2 rounded-lg text-[10px] font-black tracking-widest uppercase hover:bg-slate-200 transition-all active:scale-95 shadow-lg"
                >
-                 + <span className="hidden sm:inline">NEW TITAN</span><span className="sm:hidden">ADD</span>
+                 TITAN LOGIN
                </button>
-               <div className="w-8 h-8 rounded-full border border-white/10 overflow-hidden shrink-0">
-                  <img src={user.photoURL || ''} alt="Admin" className="w-full h-full object-cover" />
-               </div>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2 sm:gap-4">
+                 <button 
+                  onClick={() => {
+                    setEditingMember(null);
+                    setIsMemberModalOpen(true);
+                  }}
+                  className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg text-[10px] font-black tracking-widest uppercase shadow-lg shadow-red-600/20 active:scale-95 transition-all"
+                 >
+                   + <span className="hidden sm:inline">NEW TITAN</span><span className="sm:hidden">ADD</span>
+                 </button>
+                 <div className="w-8 h-8 rounded-full border border-white/10 overflow-hidden shrink-0 bg-white/5 flex items-center justify-center">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt="Admin" className="w-full h-full object-cover" />
+                    ) : (
+                      <Activity className="text-white/20" size={16} />
+                    )}
+                 </div>
+              </div>
+            )}
           </div>
         </header>
 
@@ -397,7 +370,7 @@ const App: React.FC = () => {
                     alert(`Automation Blast Complete: ${successCount}/${targets.length} messages delivered successfully.`);
                   }}
                  />
-              )}
+               )}
             </motion.div>
           </AnimatePresence>
         </div>
